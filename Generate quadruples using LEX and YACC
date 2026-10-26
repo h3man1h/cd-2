@@ -1,0 +1,95 @@
+File 1: quad.l
+
+
+%{
+#include "y.tab.h"
+#include <stdlib.h>
+#include <string.h>
+%}
+
+%%
+[a-zA-Z][a-zA-Z0-9]* {
+    yylval.str = strdup(yytext);
+    return ID;
+}
+[0-9]+ {
+    yylval.str = strdup(yytext);
+    return NUM;
+}
+[ \t\n]+ ;
+[()+*/%-] { return yytext[0]; }
+. { return yytext[0]; }
+%%
+
+int yywrap() {
+    return 1;
+}
+
+
+file2 : quad.y
+
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int yylex(void);
+void yyerror(const char *s);
+int temp = 1;
+
+char *newtemp() {
+    char buf[20];
+    sprintf(buf, "t%d", temp++);
+    return strdup(buf);
+}
+
+char *emit(char *op, char *a, char *b) {
+    char *r = newtemp();
+    printf("(%s, %s, %s, %s)\n", op, a, b, r);
+    return r;
+}
+%}
+
+%union {
+    char *str;
+}
+
+%token <str> ID NUM
+%type <str> E
+%left '+' '-'
+%left '*' '/' '%'
+
+%%
+input:
+      E { printf("Result = %s\n", $1); }
+    ;
+
+E:
+      E '+' E { $$ = emit("+", $1, $3); }
+    | E '-' E { $$ = emit("-", $1, $3); }
+    | E '*' E { $$ = emit("*", $1, $3); }
+    | E '/' E { $$ = emit("/", $1, $3); }
+    | E '%' E { $$ = emit("%", $1, $3); }
+    | '(' E ')' { $$ = $2; }
+    | ID { $$ = $1; }
+    | NUM { $$ = $1; }
+    ;
+%%
+
+void yyerror(const char *s) {
+    printf("Invalid expression\n");
+}
+
+int main() {
+    printf("Enter expression: ");
+    return yyparse();
+}
+
+
+Input: a+b*c
+
+Expected quadruples:
+(*, b, c, t1)
+(+, a, t1, t2)
+Result = t2
