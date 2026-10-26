@@ -1,0 +1,66 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+int main() {
+    char line[100];
+    char result[30], a[30], b[30], op;
+    int i;
+
+    printf("Enter three-address code.\n");
+    printf("Enter END to stop.\n");
+
+    while (1) {
+        printf("Code: ");
+
+        if (!fgets(line, sizeof(line), stdin))
+            break;
+
+        line[strcspn(line, "\n")] = '\0';
+
+        if (strcmp(line, "END") == 0)
+            break;
+
+        if (sscanf(line, "%29[^=]=%29[^+-*/]%c%29s",
+                   result, a, &op, b) == 4) {
+
+            printf("MOV R0, %s\n", a);
+
+            switch (op) {
+                case '+': printf("ADD R0, %s\n", b); break;
+                case '-': printf("SUB R0, %s\n", b); break;
+                case '*': printf("MUL R0, %s\n", b); break;
+                case '/': printf("DIV R0, %s\n", b); break;
+                default:
+                    printf("Unsupported operator\n");
+                    continue;
+            }
+
+            printf("MOV %s, R0\n", result);
+        }
+        else if (sscanf(line, "%29[^=]=%29s",
+                        result, a) == 2) {
+            printf("MOV %s, %s\n", result, a);
+        }
+        else {
+            printf("Invalid three-address code\n");
+        }
+    }
+
+    return 0;
+}
+
+Input:
+t1=a+b
+t2=t1*c
+END
+
+Expected output:
+MOV R0, a
+ADD R0, b
+MOV t1, R0
+MOV R0, t1
+MUL R0, c
+MOV t2, R0
+
