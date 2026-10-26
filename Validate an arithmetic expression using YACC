@@ -1,0 +1,54 @@
+File 1: valid.l
+
+%{
+#include "y.tab.h"
+%}
+
+%%
+[0-9]+          { return NUMBER; }
+[a-zA-Z][a-zA-Z0-9]* { return ID; }
+[ \t\n]+        ;
+[()+*/%-]       { return yytext[0]; }
+.               { return yytext[0]; }
+%%
+
+int yywrap() {
+    return 1;
+}
+
+File 2: valid.y
+
+
+%{
+#include <stdio.h>
+int yylex(void);
+void yyerror(const char *s);
+%}
+
+%token NUMBER ID
+
+%%
+input:
+      E { printf("Valid expression\n"); }
+    ;
+
+E:
+      E '+' E
+    | E '-' E
+    | E '*' E
+    | E '/' E
+    | E '%' E
+    | '(' E ')'
+    | NUMBER
+    | ID
+    ;
+%%
+
+void yyerror(const char *s) {
+    printf("Invalid expression\n");
+}
+
+int main() {
+    printf("Enter expression: ");
+    return yyparse();
+}
