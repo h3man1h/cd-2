@@ -78,3 +78,10 @@ int main() {
 
     return 0;
 }
+
+
+Input: A->ab|ac
+
+Output:
+A->aA'
+A'->b|c
